@@ -26,7 +26,7 @@ export function mapClientError(error: unknown): ClientError {
   if (error instanceof PaymentRequiredError) {
     return {
       kind: "payment_required",
-      error: "Payment is required to complete this read.",
+      error: "We couldn't load your profile right now. Please try again shortly.",
       status: 402,
     };
   }

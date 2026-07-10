@@ -152,7 +152,7 @@ test("blocks reads until the requested linkedin.profile capability is ready", ()
 test("maps SDK and unknown failures to sanitized client errors", () => {
   assert.deepEqual(mapClientError(new PaymentRequiredError("private payment detail", { secret: true })), {
     kind: "payment_required",
-    error: "Payment is required to complete this read.",
+    error: "We couldn't load your profile right now. Please try again shortly.",
     status: 402,
   });
   assert.deepEqual(mapClientError(new AccessNotApprovedError("private status detail")), {
