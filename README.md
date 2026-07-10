@@ -9,6 +9,52 @@ A small Next.js reference app that turns approved `linkedin.profile` data into a
 - A Vana app private key for live requests
 - A browser-accessible app URL for live return redirects
 
+## Install the Direct LinkedIn registry item
+
+Install the composite source-specific reference directly from this public GitHub registry:
+
+```bash
+npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next
+```
+
+No `components.json` is required. The item uses explicit root-relative targets. For a reproducible public release, replace the mutable default-branch command with an immutable ref after that ref exists:
+
+```bash
+npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next#<full-commit-sha>
+```
+
+The consumer must already be a TypeScript Next.js App Router project using `src/app` and the `@/*` to `./src/*` TypeScript path alias. The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only@0.0.1`, and the `tsx` test runner. It does not install Next.js, React, a page shell, layout, global styles, or product UI.
+
+Review these collision paths before installing; resolving existing files is app-owned:
+
+```text
+src/lib/vana/{app-url,binding,capability,constants,errors,request,response,runtime,server}.ts
+src/lib/linkedin-profile.ts
+src/data/linkedin-profile.fixture.ts
+src/app/api/vana/{request,status,read}/route.ts
+src/app/connect/return/page.tsx
+test/contract.test.ts
+```
+
+Set environment values manually in the consumer. The registry does not copy them:
+
+```dotenv
+VANA_APP_PRIVATE_KEY=0x...
+VANA_APP_URL=https://your-app.example
+```
+
+`VANA_APP_URL` fixes the return origin and `/connect/return` URL. Keep the private key server-only.
+
+After installation, the app owns identity/source/scope changes in `constants.ts`, the LinkedIn mapper and fixture, the return-page presentation, all UI/copy/pages/styles, environment values, package scripts, and collision resolution. Real user-facing UI stays app-owned. App operators fund Direct reads; end-user copy must describe availability or recovery without exposing builder payment mechanics.
+
+The registry can add the test file and `tsx` dev dependency, but it cannot merge a test script into the consumer's `package.json`. Run the shipped contract directly:
+
+```bash
+npx tsx --test test/contract.test.ts
+```
+
+This manifest tracks the transport files on released starter `main`. It intentionally does not duplicate the neutral payment-copy change from starter PR #3. After that PR lands, sync from `main` and repeat registry validation plus a clean consumer install before creating any release tag. Until an immutable ref exists and passes that gate, the default-branch command is a development install, not a versioned release.
+
 ## Setup
 
 ```bash
