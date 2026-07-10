@@ -25,6 +25,8 @@ npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next#<
 
 The consumer must already be a TypeScript Next.js App Router project using `src/app` and the `@/*` to `./src/*` TypeScript path alias. The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only@0.0.1`, and the `tsx` test runner. It does not install Next.js, React, a page shell, layout, global styles, or product UI.
 
+> **Note on shadcn.** We use `shadcn` purely as a file-distribution registry — a versioned way to `add` and later re-sync the Vana transport files. This repo has **nothing to do with Tailwind or the shadcn UI component system**; the registry ships `registry:file` items (plain `.ts`/`.tsx` transport code), not `registry:ui` components. A consumer needs no Tailwind, no `cn` util, and no design tokens to install it. `components.json` is optional and only used to register the `@vana` namespace; the GitHub-shorthand install above needs none.
+
 Review these collision paths before installing; resolving existing files is app-owned:
 
 ```text
@@ -54,6 +56,16 @@ npx tsx --test test/contract.test.ts
 ```
 
 This manifest tracks the transport files on released starter `main`, including the final builder escrow message from starter PR #5. Sync from `main` and repeat registry validation plus a clean consumer install before creating any release tag. Until an immutable ref exists and passes that gate, the default-branch command is a development install, not a versioned release.
+
+### Maintaining the registry (maintainers only)
+
+`registry.json` is the source manifest. Built, content-inlined items are emitted to `public/r/` and committed so they resolve over both the deployed app (`/r/{name}.json`) and raw GitHub. Rebuild whenever a transport file or `registry.json` changes:
+
+```bash
+pnpm registry:build   # shadcn build --output public/r
+```
+
+Commit the regenerated `public/r/*.json` in the same change as the source edit so the two never drift.
 
 ## Setup
 
