@@ -1,13 +1,8 @@
 import { readRequestBinding } from "@/lib/vana/binding";
 import { assertLinkedInReadReady } from "@/lib/vana/capability";
+import { returnStateForStatus, type ReturnState } from "@/lib/vana/return-state";
 import { getVanaController, getVanaServerConfig } from "@/lib/vana/server";
 import { cookies } from "next/headers";
-
-type ReturnState = {
-  title: string;
-  message: string;
-  kind: "success" | "waiting" | "error";
-};
 
 export default async function ConnectReturn({
   searchParams,
@@ -41,40 +36,8 @@ async function authoritativeReturnState(requestId: string | null): Promise<Retur
     if (!binding) return invalidReturn();
 
     const status = await getVanaController(binding.runtime, config).getAccessRequestStatus(requestId);
-    switch (status.status) {
-      case "completed":
-        return {
-          title: "Profile read complete",
-          message: "The authoritative request status is complete. You can return to the profile tab.",
-          kind: "success",
-        };
-      case "approved":
-      case "ready_for_read":
-        assertLinkedInReadReady(status);
-        return {
-          title: "Profile approved",
-          message: "The request is ready. Keep this tab open while the original tab finishes the approved read.",
-          kind: "waiting",
-        };
-      case "pending":
-        return {
-          title: "Approval still pending",
-          message: "The request has not reached a read-ready state yet.",
-          kind: "waiting",
-        };
-      case "denied":
-        return {
-          title: "Request declined",
-          message: "The authoritative request status is declined. Return to the profile tab to try again.",
-          kind: "error",
-        };
-      case "expired":
-        return {
-          title: "Request expired",
-          message: "The authoritative request status is expired. Return to the profile tab to start a new request.",
-          kind: "error",
-        };
-    }
+    if (status.status === "approved" || status.status === "ready_for_read") assertLinkedInReadReady(status);
+    return returnStateForStatus(status.status);
   } catch (error) {
     console.error(`[vana/return] Return verification failed for ${requestId}`, error);
     return {
