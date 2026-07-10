@@ -53,7 +53,7 @@ The registry can add the test file and `tsx` dev dependency, but it cannot merge
 npx tsx --test test/contract.test.ts
 ```
 
-This manifest tracks the transport files on released starter `main`. It intentionally does not duplicate the neutral payment-copy change from starter PR #3. After that PR lands, sync from `main` and repeat registry validation plus a clean consumer install before creating any release tag. Until an immutable ref exists and passes that gate, the default-branch command is a development install, not a versioned release.
+This manifest tracks the transport files on released starter `main`, including the final builder escrow message from starter PR #5. Sync from `main` and repeat registry validation plus a clean consumer install before creating any release tag. Until an immutable ref exists and passes that gate, the default-branch command is a development install, not a versioned release.
 
 ## Setup
 
