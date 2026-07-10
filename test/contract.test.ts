@@ -152,7 +152,7 @@ test("blocks reads until the requested linkedin.profile capability is ready", ()
 test("maps SDK and unknown failures to sanitized client errors", () => {
   assert.deepEqual(mapClientError(new PaymentRequiredError("private payment detail", { secret: true })), {
     kind: "payment_required",
-    error: "We couldn't load your profile right now. Please try again shortly.",
+    error: "The app's escrow balance cannot cover this read. Fund the app identity and retry.",
     status: 402,
   });
   assert.deepEqual(mapClientError(new AccessNotApprovedError("private status detail")), {
