@@ -1,34 +1,129 @@
 # Vana Data App Starter
 
-A small Next.js reference app that turns approved `linkedin.profile` data into a LinkedIn profile snapshot. The transport is reusable; the LinkedIn source, sample fixture, mapper, and rendered snapshot are app-local examples.
+A small Next.js app that turns approved `linkedin.profile` data into a LinkedIn profile snapshot.
 
-## Requirements
+It gives you two different proofs:
 
-- Node.js 22 or newer
-- pnpm
-- A Vana app private key for live requests
-- A browser-accessible app URL for live return redirects
+- **Local proof:** the fixture, mapper, and UI work without Vana.
+- **Live proof:** a registered app identity requests and reads approved data from a Personal Server.
 
-## Install the Direct LinkedIn registry item
+Passing the local proof does not mean the live path is configured.
 
-Install the composite source-specific reference directly from this public GitHub registry:
+## Build the app locally
 
 ```bash
-npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next
+git clone https://github.com/vana-com/vana-data-app-starter.git
+cd vana-data-app-starter
+pnpm install
+pnpm dev
 ```
 
-No `components.json` is required. The item uses explicit root-relative targets. For a reproducible public release, replace the mutable default-branch command with an immutable ref after that ref exists:
+Open [http://localhost:3000](http://localhost:3000). The initial profile is a fictional fixture, so this works without a private key, app identity, approval, or Personal Server read.
 
 ```bash
-npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next#<full-commit-sha>
+pnpm test
+pnpm typecheck
 ```
 
-The consumer must already be a TypeScript Next.js App Router project using `src/app` and the `@/*` to `./src/*` TypeScript path alias. The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only@0.0.1`, and the `tsx` test runner. It does not install Next.js, React, a page shell, layout, global styles, or product UI.
+## Connect it to Vana
 
-Review these collision paths before installing; resolving existing files is app-owned:
+Create a registered app identity instead of making a private key by hand:
+
+1. Open the Developers page for the Vana environment you are using.
+2. Select the network.
+3. Enter the exact App URL the browser will use. For this starter, use `http://localhost:3000`.
+4. Create the app identity and approve the wallet signature.
+5. Copy the generated environment values immediately. The Developers page shows the private key once.
+
+| Request lane | Create the identity at | Open the starter at |
+| --- | --- | --- |
+| Production / Mainnet | [account.vana.org/developers](https://account.vana.org/developers), Mainnet | `http://localhost:3000` |
+| Production / Moksha | [account.vana.org/developers](https://account.vana.org/developers), Moksha | `http://localhost:3000?network=moksha` |
+| Dev / Moksha | [account-dev.vana.org/developers](https://account-dev.vana.org/developers), Moksha | `http://localhost:3000?vana_env=dev&network=moksha` |
+
+Put the generated values in `.env.local`:
+
+```dotenv
+VANA_APP_PRIVATE_KEY=0x...
+VANA_APP_URL=http://localhost:3000
+```
+
+Keep the private key server-only. `VANA_APP_URL` must match the registered App URL; the starter derives `/connect/return` from its origin.
+
+There is no separate callback-registration step.
+
+### Choose the data scopes
+
+A scope is a named category of data that an app requests, such as a LinkedIn profile or work history. Request only what the product needs and what the selected collection path can produce.
+
+Browse the public [Scope Coverage Registry](https://github.com/vana-com/data-connectors/blob/main/SCOPES.md) to find other sources, their exact scope IDs, Web and Desktop availability, and connector maturity. Use the linked JSON schemas to inspect each scope's payload shape; for example, see the [LinkedIn scope schemas](https://github.com/vana-com/data-connectors/tree/main/connectors/linkedin/schemas).
+
+| Scope | Data | Collection path |
+| --- | --- | --- |
+| `linkedin.profile` | Profile identity, headline, summary, and location | Public profile or deep import |
+| `linkedin.experience` | Roles, employers, and dates | Public profile or deep import |
+| `linkedin.education` | Schools, degrees, and dates | Public profile or deep import |
+| `linkedin.skills` | Listed skills | Public profile or deep import |
+| `linkedin.languages` | Listed languages | Public profile or deep import |
+| `linkedin.connections` | Connection list | Deep authenticated desktop import only |
+
+This starter requests only `linkedin.profile` in `src/lib/vana/constants.ts`. If you change or add scopes, update the capability check, fixture, mapper, and product UI together.
+
+The public registry is currently hand-maintained and can drift from private Unity capability data. [BUI-705](https://linear.app/vana-team/issue/BUI-705/make-the-public-source-scope-catalog-machine-readable-and) tracks making it machine-readable and authoritative. Until then, use it as the discovery surface and report mismatches instead of guessing.
+
+## Run a live request
+
+Start the app, open the URL matching the registered identity, and select **Connect LinkedIn**. Vana opens in a normal new browser tab, not a popup window.
 
 ```text
-src/lib/vana/{app-url,binding,capability,constants,errors,request,response,return-state,runtime,server}.ts
+App tab:  sample -> creating -> waiting -> reading -> approved profile
+Vana tab: approve -> deliver data -> wait for the app to acknowledge the read
+```
+
+Keep the Vana tab open while it says data is being delivered. It may close after the app confirms the read. If the browser blocks the new tab, show an **Open approval** fallback.
+
+`/connect/return` is a verified fallback and status surface, not the main product UI. It fetches authoritative status instead of trusting browser query parameters.
+
+If **Connect LinkedIn** appears to do nothing, inspect `POST /api/vana/request` first. Missing environment values can fail request creation before the new tab receives its Vana URL.
+
+### Production-readiness blockers
+
+- [unity-surfaces #715](https://github.com/vana-com/unity-surfaces/issues/715): Moksha completion can return `denied` without an authoritative failure reason.
+- [unity-surfaces #716](https://github.com/vana-com/unity-surfaces/issues/716): Mainnet requires the protocol's actual fee asset, but the deployed funding surface does not currently expose it correctly.
+- [BUI-705](https://linear.app/vana-team/issue/BUI-705/make-the-public-source-scope-catalog-machine-readable-and): the public source-scope catalog is not yet machine-readable or authoritative, so builders cannot reliably discover supported scopes, schemas, and collection paths without private Unity knowledge.
+
+Treat these as production-readiness gates, not optional documentation follow-ups. They do not invalidate the local fixture and mapper proof.
+
+The app operator funds Direct reads. Keep escrow balances, fee assets, funding instructions, and raw server errors out of end-user UI. Show neutral availability and recovery copy instead.
+
+## Adapt the product
+
+Keep the transport and session handling. Replace the app-owned source boundary:
+
+- `src/lib/vana/constants.ts`: request identity, source, and scope
+- `src/data/linkedin-profile.fixture.ts`: credential-free sample data
+- `src/lib/linkedin-profile.ts`: external payload to app view model
+- `src/components/ProfileSnapshot.tsx`: finished product surface
+- Product copy in `src/components/LinkedInProfileApp.tsx`
+
+Preserve the product UI and replace only its Direct routes, session handling, fixture, and mapper.
+
+Make `idle`, `waiting`, `reading`, `ready`, and `error` inspectable as pure views without a live request. A development-only fixture browser must branch before the Vana SDK mounts and must not open a tab, poll, read data, or touch escrow. Keep app-tab states separate from `/connect/return` states and label fixtures clearly.
+
+## Add Direct Vana to an existing app
+
+If you already have a TypeScript Next.js App Router project using `src/app` and the `@/*` path alias, install the released transport bundle instead of forking:
+
+```bash
+npx shadcn@latest add vana-com/vana-data-app-starter/direct-vana-linkedin-next#v0.1.0
+```
+
+This uses `shadcn` only as a file-distribution registry. It does not require Tailwind, shadcn UI components, a `cn` utility, design tokens, or `components.json`.
+
+Review these app-owned collision paths before installing:
+
+```text
+src/lib/vana/*.ts
 src/lib/linkedin-profile.ts
 src/data/linkedin-profile.fixture.ts
 src/app/api/vana/{request,status,read}/route.ts
@@ -36,108 +131,31 @@ src/app/connect/return/page.tsx
 test/contract.test.ts
 ```
 
-Set environment values manually in the consumer. The registry does not copy them:
-
-```dotenv
-VANA_APP_PRIVATE_KEY=0x...
-VANA_APP_URL=https://your-app.example
-```
-
-`VANA_APP_URL` fixes the return origin and `/connect/return` URL. Keep the private key server-only.
-
-After installation, the app owns identity/source/scope changes in `constants.ts`, the LinkedIn mapper and fixture, the return-page presentation, all UI/copy/pages/styles, environment values, package scripts, and collision resolution. Real user-facing UI stays app-owned. App operators fund Direct reads; end-user copy must describe availability or recovery without exposing builder payment mechanics.
-
-The registry can add the test file and `tsx` dev dependency, but it cannot merge a test script into the consumer's `package.json`. Run the shipped contract directly:
+The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only`, and `tsx`; it does not install Next.js, React, layouts, styles, product UI, environment values, or a `package.json` test script.
 
 ```bash
 npx tsx --test test/contract.test.ts
 ```
 
-This manifest tracks the transport files on released starter `main`, including the final builder escrow message from starter PR #5. Sync from `main` and repeat registry validation plus a clean consumer install before creating any release tag. Until an immutable ref exists and passes that gate, the default-branch command is a development install, not a versioned release.
+## Transport boundary
 
-## Setup
+The reusable bundle owns validation, request-session binding, sanitized server responses, and app-local result mapping:
+
+```text
+src/lib/vana/{app-url,binding,capability,constants,errors,request,response,return-state,runtime,server}.ts
+src/app/api/vana/{request,status,read}/route.ts
+src/app/connect/return/page.tsx
+useDirectVanaConnect callbacks in src/components/LinkedInProfileApp.tsx
+```
+
+Do not add a second payment state machine, retry wrapper, caller-selected return URL, client-side private key, status/read runtime query parameters, raw SDK payload UI contract, or one shared cookie that overwrites concurrent requests. The Vana SDK owns Personal Server retries and `402` settlement.
+
+## Maintaining the registry
+
+`registry.json` is the source manifest. Rebuild and commit `public/r/*.json` whenever it or a transport file changes:
 
 ```bash
-pnpm install
-cp .env.example .env.local
+pnpm registry:build
 ```
 
-Set both values in `.env.local`:
-
-```dotenv
-VANA_APP_PRIVATE_KEY=0x...
-VANA_APP_URL=http://localhost:3000
-```
-
-`VANA_APP_PRIVATE_KEY` is read only by server modules. `VANA_APP_URL` is the sole source of the app homepage and fixed `/connect/return` origin. The app does not accept a caller-provided return URL.
-
-Run the app:
-
-```bash
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-## Local Proof Without Credentials
-
-The first screen always renders the fictional fixture from `src/data/linkedin-profile.fixture.ts`. This proves the app-local mapper and snapshot without a Vana request, private key, or Personal Server.
-
-Run the local contract checks:
-
-```bash
-pnpm test
-pnpm typecheck
-VANA_APP_PRIVATE_KEY="0x$(printf '1%.0s' {1..64})" \
-  VANA_APP_URL=http://localhost:3000 \
-  pnpm build
-git diff --check
-```
-
-The environment values in the build command are dummy values. Configuration is loaded lazily, so module evaluation and compilation do not require real credentials.
-
-## Live Vana Proof
-
-1. Set a real `VANA_APP_PRIVATE_KEY` and the exact browser-visible `VANA_APP_URL`.
-2. Start the app with `pnpm dev`.
-3. Open the runtime that matches the Vana host:
-   - production/mainnet: `http://localhost:3000`
-   - production/moksha: `http://localhost:3000?network=moksha`
-   - dev/moksha: `http://localhost:3000?vana_env=dev&network=moksha`
-4. Select **Connect LinkedIn**. Approve `linkedin.profile` in the Vana tab and keep it open while the Personal Server read completes.
-5. Confirm the original tab moves through waiting, reading, and ready, and replaces the sample fixture with the approved profile snapshot.
-6. Confirm the return tab reports server-fetched request status. Changing its `status`, `errorCode`, or `errorMessage` query parameters must not change the displayed result.
-
-Invalid or duplicated `vana_env` and `network` values fail at request creation. Status and read routes accept only `requestId`; they recover env/network from the signed HTTP-only request cookie.
-
-## Source Replacement Boundary
-
-Replace these app-local files when adapting the starter to another source or product:
-
-- `src/lib/vana/constants.ts`: app identity, source, and scope
-- `src/data/linkedin-profile.fixture.ts`: credential-free sample data
-- `src/lib/linkedin-profile.ts`: external payload to app-owned view model
-- `src/components/ProfileSnapshot.tsx`: rendered product surface
-- Product wording in `src/components/LinkedInProfileApp.tsx`
-
-Keep the source, fixture, mapper, and UI in the app. Do not move them into a shared runtime package.
-
-## Transport Bundle Boundary
-
-The reusable direct request/status/read/return bundle is:
-
-- `src/lib/vana/app-url.ts`
-- `src/lib/vana/binding.ts`
-- `src/lib/vana/capability.ts`
-- `src/lib/vana/errors.ts`
-- `src/lib/vana/request.ts`
-- `src/lib/vana/return-state.ts`
-- `src/lib/vana/runtime.ts`
-- `src/lib/vana/server.ts`
-- `src/app/api/vana/request/route.ts`
-- `src/app/api/vana/status/route.ts`
-- `src/app/api/vana/read/route.ts`
-- `src/app/connect/return/page.tsx`
-- The `useDirectVanaConnect` transport callbacks in `src/components/LinkedInProfileApp.tsx`
-
-Do not add a second payment state machine, retry wrapper, caller-selected return URL, client-side private key, query-param runtime on status/read, raw SDK payload UI contract, or one shared cookie that overwrites concurrent requests. `@opendatalabs/vana-sdk` owns Personal Server transport retries and `402` settlement; this bundle owns only validation, session binding, sanitized errors, and app-local mapping.
+Before creating a release tag, validate from merged `main` and repeat the clean consumer install using the immutable ref.

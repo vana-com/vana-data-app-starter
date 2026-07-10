@@ -5,9 +5,9 @@ import {
   type AccessRequest,
   type AccessRequestStatus,
   type ApprovedDataResult,
-  type DirectConnectState,
 } from "@opendatalabs/vana-sdk/react";
 import type { LinkedInSnapshot } from "@/lib/linkedin-profile";
+import { consumerStateCopy } from "./linkedin-profile-copy";
 import { ProfileSnapshot } from "./ProfileSnapshot";
 
 type ErrorBody = { error?: unknown };
@@ -44,13 +44,14 @@ export function LinkedInProfileApp({ sample }: { sample: LinkedInSnapshot }) {
   const { state } = connect;
   const profile = state.type === "done" ? state.result.data : sample;
   const isLive = state.type === "done";
+  const approvalTabBlocked = state.type === "awaiting_approval" && state.popupBlocked;
 
   return (
     <main className="page-shell">
       <aside className="connection-panel" aria-live="polite">
         <p className="eyebrow">LinkedIn profile snapshot</p>
-        <h2>{stateTitle(state.type, state.type === "awaiting_approval" && state.popupBlocked)}</h2>
-        <p className="state-copy">{stateCopy(state)}</p>
+        <h2>{stateTitle(state.type, approvalTabBlocked)}</h2>
+        <p className="state-copy">{consumerStateCopy(state.type, approvalTabBlocked)}</p>
 
         {state.type === "awaiting_approval" && state.popupBlocked ? (
           <a className="secondary-action" href={state.request.approvalUrl} target="_blank" rel="noreferrer">
@@ -106,22 +107,8 @@ function stateTitle(type: string, popupBlocked: boolean): string {
     case "awaiting_approval": return "Waiting for approval";
     case "reading": return "Reading approved data";
     case "done": return "Profile ready";
-    case "error": return "Connection interrupted";
+    case "error": return "Could not load your profile";
     default: return "Your profile, with permission";
-  }
-}
-
-function stateCopy(state: DirectConnectState<LinkedInSnapshot>): string {
-  if (state.type === "awaiting_approval" && state.popupBlocked) {
-    return "Open the approval page manually, approve the request, and keep that tab open while this page reads your profile.";
-  }
-  switch (state.type) {
-    case "creating": return "The app is creating a session-bound request for linkedin.profile.";
-    case "awaiting_approval": return "Approve the request in the Vana tab and keep it open while your Personal Server is read.";
-    case "reading": return "Approval is ready. The server is mapping the profile into this snapshot.";
-    case "done": return "This snapshot was mapped from the LinkedIn profile you approved.";
-    case "error": return state.error.message;
-    default: return "The sample profile is visible now. Connect to replace it with your approved linkedin.profile data.";
   }
 }
 

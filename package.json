@@ -12,7 +12,8 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx --test test/*.test.ts",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "registry:build": "shadcn build --output public/r"
   },
   "dependencies": {
     "@opendatalabs/vana-sdk": "^3.13.4",
@@ -26,6 +27,7 @@
     "@types/node": "^25.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "shadcn": "^4.13.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.0"
   }
