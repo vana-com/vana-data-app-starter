@@ -1,0 +1,102 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "vana-data-app-starter",
+  "homepage": "https://github.com/vana-com/vana-data-app-starter",
+  "items": [
+    {
+      "name": "direct-vana-linkedin-next",
+      "type": "registry:item",
+      "title": "Direct Vana LinkedIn for Next.js",
+      "description": "Source-specific Direct Vana transport reference for linkedin.profile in a TypeScript Next.js App Router app.",
+      "dependencies": [
+        "@opendatalabs/vana-sdk@3.13.4",
+        "server-only@0.0.1"
+      ],
+      "devDependencies": [
+        "tsx@^4.21.0"
+      ],
+      "files": [
+        {
+          "path": "src/lib/vana/app-url.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/app-url.ts"
+        },
+        {
+          "path": "src/lib/vana/binding.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/binding.ts"
+        },
+        {
+          "path": "src/lib/vana/capability.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/capability.ts"
+        },
+        {
+          "path": "src/lib/vana/constants.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/constants.ts"
+        },
+        {
+          "path": "src/lib/vana/errors.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/errors.ts"
+        },
+        {
+          "path": "src/lib/vana/request.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/request.ts"
+        },
+        {
+          "path": "src/lib/vana/response.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/response.ts"
+        },
+        {
+          "path": "src/lib/vana/runtime.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/runtime.ts"
+        },
+        {
+          "path": "src/lib/vana/server.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/server.ts"
+        },
+        {
+          "path": "src/lib/linkedin-profile.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/linkedin-profile.ts"
+        },
+        {
+          "path": "src/data/linkedin-profile.fixture.ts",
+          "type": "registry:file",
+          "target": "~/src/data/linkedin-profile.fixture.ts"
+        },
+        {
+          "path": "src/app/api/vana/request/route.ts",
+          "type": "registry:file",
+          "target": "~/src/app/api/vana/request/route.ts"
+        },
+        {
+          "path": "src/app/api/vana/status/route.ts",
+          "type": "registry:file",
+          "target": "~/src/app/api/vana/status/route.ts"
+        },
+        {
+          "path": "src/app/api/vana/read/route.ts",
+          "type": "registry:file",
+          "target": "~/src/app/api/vana/read/route.ts"
+        },
+        {
+          "path": "src/app/connect/return/page.tsx",
+          "type": "registry:file",
+          "target": "~/src/app/connect/return/page.tsx"
+        },
+        {
+          "path": "test/contract.test.ts",
+          "type": "registry:file",
+          "target": "~/test/contract.test.ts"
+        }
+      ]
+    }
+  ]
+}
