@@ -56,6 +56,8 @@ There is no separate callback-registration step.
 
 A scope is a named category of data that an app requests, such as a LinkedIn profile or work history. Request only what the product needs and what the selected collection path can produce.
 
+Browse the public [Scope Coverage Registry](https://github.com/vana-com/data-connectors/blob/main/SCOPES.md) to find other sources, their exact scope IDs, Web and Desktop availability, and connector maturity. Use the linked JSON schemas to inspect each scope's payload shape; for example, see the [LinkedIn scope schemas](https://github.com/vana-com/data-connectors/tree/main/connectors/linkedin/schemas).
+
 | Scope | Data | Collection path |
 | --- | --- | --- |
 | `linkedin.profile` | Profile identity, headline, summary, and location | Public profile or deep import |
@@ -67,7 +69,7 @@ A scope is a named category of data that an app requests, such as a LinkedIn pro
 
 This starter requests only `linkedin.profile` in `src/lib/vana/constants.ts`. If you change or add scopes, update the capability check, fixture, mapper, and product UI together.
 
-Unity's current scope authority lives in the private `unity-surfaces/packages/app-core/src/platform/source-list.ts` catalog. A public, builder-searchable source and scope catalog does not exist yet; this README lists the LinkedIn scopes so builders do not have to guess.
+The public registry is currently hand-maintained and can drift from private Unity capability data. [BUI-705](https://linear.app/vana-team/issue/BUI-705/make-the-public-source-scope-catalog-machine-readable-and) tracks making it machine-readable and authoritative. Until then, use it as the discovery surface and report mismatches instead of guessing.
 
 ## Run a live request
 
