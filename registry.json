@@ -52,6 +52,11 @@
           "target": "~/src/lib/vana/response.ts"
         },
         {
+          "path": "src/lib/vana/return-state.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/return-state.ts"
+        },
+        {
           "path": "src/lib/vana/runtime.ts",
           "type": "registry:file",
           "target": "~/src/lib/vana/runtime.ts"

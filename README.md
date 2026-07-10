@@ -28,7 +28,7 @@ The consumer must already be a TypeScript Next.js App Router project using `src/
 Review these collision paths before installing; resolving existing files is app-owned:
 
 ```text
-src/lib/vana/{app-url,binding,capability,constants,errors,request,response,runtime,server}.ts
+src/lib/vana/{app-url,binding,capability,constants,errors,request,response,return-state,runtime,server}.ts
 src/lib/linkedin-profile.ts
 src/data/linkedin-profile.fixture.ts
 src/app/api/vana/{request,status,read}/route.ts
@@ -131,6 +131,7 @@ The reusable direct request/status/read/return bundle is:
 - `src/lib/vana/capability.ts`
 - `src/lib/vana/errors.ts`
 - `src/lib/vana/request.ts`
+- `src/lib/vana/return-state.ts`
 - `src/lib/vana/runtime.ts`
 - `src/lib/vana/server.ts`
 - `src/app/api/vana/request/route.ts`
