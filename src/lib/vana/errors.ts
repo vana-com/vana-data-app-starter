@@ -26,7 +26,7 @@ export function mapClientError(error: unknown): ClientError {
   if (error instanceof PaymentRequiredError) {
     return {
       kind: "payment_required",
-      error: "We couldn't load your profile right now. Please try again shortly.",
+      error: "The app's escrow balance cannot cover this read. Fund the app identity and retry.",
       status: 402,
     };
   }
