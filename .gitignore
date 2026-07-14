@@ -3,6 +3,7 @@ node_modules/
 next-env.d.ts
 out/
 coverage/
+.scratch/
 *.tsbuildinfo
 .DS_Store
 .env*

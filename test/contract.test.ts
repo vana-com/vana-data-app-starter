@@ -17,6 +17,10 @@ import {
 } from "../src/lib/vana/binding";
 import { assertLinkedInReadReady } from "../src/lib/vana/capability";
 import { mapClientError } from "../src/lib/vana/errors";
+import {
+  parseBuilderPaymentMetadata,
+  toBuilderPaymentMetadata,
+} from "../src/lib/vana/payment";
 import { jsonNoStore } from "../src/lib/vana/response";
 import { resolveLaunchRuntime } from "../src/lib/vana/runtime";
 
@@ -171,6 +175,39 @@ test("maps SDK and unknown failures to sanitized client errors", () => {
     error: "The Vana request failed.",
     status: 500,
   });
+});
+
+test("exposes only safe payment evidence to builder-facing read clients", () => {
+  assert.deepEqual(
+    toBuilderPaymentMetadata({
+      opType: "grant",
+      opId: "private-grant-id",
+      asset: "0x0000000000000000000000000000000000000000",
+      amount: "0",
+      paymentNonce: "private-payment-nonce",
+      breakdown: {
+        registrationFee: "0",
+        dataAccessFee: "0",
+        registrationPaid: false,
+      },
+      paidAt: "2026-07-14T07:00:00.000Z",
+    }),
+    {
+      asset: "0x0000000000000000000000000000000000000000",
+      amount: "0",
+      breakdown: {
+        registrationFee: "0",
+        dataAccessFee: "0",
+        registrationPaid: false,
+      },
+      paidAt: "2026-07-14T07:00:00.000Z",
+    },
+  );
+  assert.equal(toBuilderPaymentMetadata(undefined), null);
+  assert.throws(
+    () => parseBuilderPaymentMetadata({ amount: "0" }),
+    /Invalid builder payment metadata/,
+  );
 });
 
 test("keeps builder diagnostics out of consumer error copy", () => {

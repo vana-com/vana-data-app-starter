@@ -123,6 +123,76 @@ Keep the Vana tab open while it says data is being delivered. It may close after
 
 If **Connect LinkedIn** appears to do nothing, inspect `POST /api/vana/request` first. Missing environment values can fail request creation before the new tab receives its Vana URL.
 
+### Repeatable Moksha smoke
+
+Moksha is Vana's public Testnet. This smoke drives the same starter request,
+status, read, and acknowledgement routes as the product while keeping the
+request-session cookie in the command. It does not require Mainnet funds.
+
+Prerequisites:
+
+1. `.env.local` contains the existing team-owned Moksha app identity and the
+   exact registered `VANA_APP_URL`. These values contain a private key and must
+   come through the team's approved secret-sharing surface, never this README,
+   Git, Slack, or a run record. The owner and location of that shared test
+   credential are not yet documented, so the README-only clean-checkout gate
+   remains open.
+2. That URL is reachable. For a local identity, start the starter at the exact
+   registered origin in one terminal:
+
+   ```bash
+   pnpm dev
+   ```
+
+3. The test user is signed into [app.vana.org](https://app.vana.org), has
+   **Protocol network: Testnet** selected, and has `linkedin.profile` data on
+   their Personal Server.
+
+Run the proof from a second terminal:
+
+```bash
+pnpm smoke:moksha
+```
+
+The command prints one Vana approval URL. Open it, approve the ordinary
+LinkedIn request, and keep that tab open while the Personal Server delivers the
+data. There is no wallet, network-addition, token-acquisition, bridge, or
+Mainnet step for the approving user.
+
+The command then:
+
+1. accepts external `approved` or canonical `ready_for_read` as read-ready;
+2. reads exactly once through the starter's charge-safe route;
+3. rejects the fictional fixture and empty fallback profile;
+4. waits for final `completed` status to prove consumer acknowledgement; and
+5. writes a redacted record under `.scratch/bui-702/runs/`.
+
+The record contains request/status metadata, commit and SDK versions, mapped
+field names, a payload hash, and safe payment evidence. It resolves the SDK
+release tag to a commit when the adjacent SDK checkout or GitHub is available;
+an unresolved commit is recorded honestly as `unknown`. It never contains the
+request cookie, app private key, Personal Server URL, auth headers, or LinkedIn
+payload. `.scratch/` is ignored by Git.
+
+Because the command owns the request cookie, the browser's `/connect/return`
+page may say the request is unavailable. That browser page is not the smoke
+oracle; the command's signed status call is. A successful command ends with
+`completed` and exits zero.
+
+SDK 3.13.4 exposes only lifecycle statuses to the starter and discards Vana
+Web's `/fail` `errorCode`. Therefore a terminal `denied` can be attributed only
+to the broad approval/readiness boundary by this command. Inspect the Vana tab
+for `grant_registration_conflict` or `missing_external_completion_routing`
+until the SDK status contract preserves that safe failure code. The smoke does
+not invent a more precise owner than its observable API provides.
+
+The first live author proof on 14 July 2026 used deployed Career Quest on
+Moksha. It rendered the real `linkedin.profile` payload, returned
+`status=completed`, and included no payment receipt. That specific read settled
+zero Moksha tokens and consumed no faucet-funded Testnet balance. Do not infer
+from one receipt-free read that every possible Moksha scope or Personal Server
+is permanently unpriced.
+
 ### Mainnet funding limitation
 
 The app operator funds Direct reads. A supported zero-crypto, self-service
@@ -182,7 +252,7 @@ npx tsx --test test/contract.test.ts test/consume-once.test.ts
 The reusable bundle owns validation, request-session binding, sanitized server responses, and app-local result mapping:
 
 ```text
-src/lib/vana/{app-url,binding,capability,constants,consume-once,errors,request,response,return-state,runtime,server}.ts
+src/lib/vana/{app-url,binding,capability,constants,consume-once,errors,payment,request,response,return-state,runtime,server}.ts
 src/app/api/vana/{request,status,read}/route.ts
 src/app/connect/return/page.tsx
 useDirectVanaConnect callbacks in src/components/LinkedInProfileApp.tsx

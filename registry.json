@@ -47,6 +47,11 @@
           "target": "~/src/lib/vana/errors.ts"
         },
         {
+          "path": "src/lib/vana/payment.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/payment.ts"
+        },
+        {
           "path": "src/lib/vana/request.ts",
           "type": "registry:file",
           "target": "~/src/lib/vana/request.ts"
