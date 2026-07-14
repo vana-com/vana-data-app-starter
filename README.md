@@ -162,12 +162,16 @@ Review these app-owned collision paths before installing:
 src/lib/vana/*.ts
 src/lib/linkedin-profile.ts
 src/data/linkedin-profile.fixture.ts
+src/components/linkedin-profile-copy.ts
 src/app/api/vana/{request,status,read}/route.ts
 src/app/connect/return/page.tsx
 test/contract.test.ts
 ```
 
-The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only`, and `tsx`; it does not install Next.js, React, layouts, styles, product UI, environment values, or a `package.json` test script.
+The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only`, `tsx`, and
+the safe consumer-copy helper exercised by its contract test. It does not
+install Next.js, React, layouts, styles, product components, environment values,
+or a `package.json` test script.
 
 ```bash
 npx tsx --test test/contract.test.ts test/consume-once.test.ts
@@ -178,7 +182,7 @@ npx tsx --test test/contract.test.ts test/consume-once.test.ts
 The reusable bundle owns validation, request-session binding, sanitized server responses, and app-local result mapping:
 
 ```text
-src/lib/vana/{app-url,binding,capability,constants,errors,request,response,return-state,runtime,server}.ts
+src/lib/vana/{app-url,binding,capability,constants,consume-once,errors,request,response,return-state,runtime,server}.ts
 src/app/api/vana/{request,status,read}/route.ts
 src/app/connect/return/page.tsx
 useDirectVanaConnect callbacks in src/components/LinkedInProfileApp.tsx

@@ -36,6 +36,7 @@ const expectedPaths = [
   "src/lib/vana/server.ts",
   "src/lib/linkedin-profile.ts",
   "src/data/linkedin-profile.fixture.ts",
+  "src/components/linkedin-profile-copy.ts",
   "src/app/api/vana/request/route.ts",
   "src/app/api/vana/status/route.ts",
   "src/app/api/vana/read/route.ts",
