@@ -27,6 +27,11 @@
           "target": "~/src/lib/vana/binding.ts"
         },
         {
+          "path": "src/lib/vana/consume-once.ts",
+          "type": "registry:file",
+          "target": "~/src/lib/vana/consume-once.ts"
+        },
+        {
           "path": "src/lib/vana/capability.ts",
           "type": "registry:file",
           "target": "~/src/lib/vana/capability.ts"
@@ -77,6 +82,11 @@
           "target": "~/src/data/linkedin-profile.fixture.ts"
         },
         {
+          "path": "src/components/linkedin-profile-copy.ts",
+          "type": "registry:file",
+          "target": "~/src/components/linkedin-profile-copy.ts"
+        },
+        {
           "path": "src/app/api/vana/request/route.ts",
           "type": "registry:file",
           "target": "~/src/app/api/vana/request/route.ts"
@@ -100,6 +110,11 @@
           "path": "test/contract.test.ts",
           "type": "registry:file",
           "target": "~/test/contract.test.ts"
+        },
+        {
+          "path": "test/consume-once.test.ts",
+          "type": "registry:file",
+          "target": "~/test/consume-once.test.ts"
         }
       ]
     }
