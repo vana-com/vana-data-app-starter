@@ -2,6 +2,7 @@ import { mapLinkedInProfile } from "@/lib/linkedin-profile";
 import { assertLinkedInReadReady } from "@/lib/vana/capability";
 import { consumeApprovedReadOnce } from "@/lib/vana/consume-once";
 import { mapClientError } from "@/lib/vana/errors";
+import { toBuilderPaymentMetadata } from "@/lib/vana/payment";
 import { getBoundVanaRequest, requestIdFromUrl } from "@/lib/vana/request";
 import { jsonNoStore } from "@/lib/vana/response";
 import { NextRequest } from "next/server";
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
     return jsonNoStore({
       scope: result.scope,
       data: mapLinkedInProfile(result.data),
+      payment: toBuilderPaymentMetadata(result.payment),
     });
   } catch (error) {
     const clientError = mapClientError(error);

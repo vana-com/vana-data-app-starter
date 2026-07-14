@@ -11,6 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "smoke:moksha": "tsx --env-file-if-exists=.env.local scripts/smoke-moksha.ts",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "next typegen && tsc --noEmit",
     "registry:build": "shadcn build --output public/r"

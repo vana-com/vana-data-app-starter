@@ -29,6 +29,7 @@ const expectedPaths = [
   "src/lib/vana/capability.ts",
   "src/lib/vana/constants.ts",
   "src/lib/vana/errors.ts",
+  "src/lib/vana/payment.ts",
   "src/lib/vana/request.ts",
   "src/lib/vana/response.ts",
   "src/lib/vana/return-state.ts",
