@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { resolve } from "node:path";
 
 type RegistryFile = {
+  content?: string;
   path: string;
   type: string;
   target?: string;
@@ -24,6 +25,7 @@ type RegistryManifest = {
 const expectedPaths = [
   "src/lib/vana/app-url.ts",
   "src/lib/vana/binding.ts",
+  "src/lib/vana/consume-once.ts",
   "src/lib/vana/capability.ts",
   "src/lib/vana/constants.ts",
   "src/lib/vana/errors.ts",
@@ -39,6 +41,7 @@ const expectedPaths = [
   "src/app/api/vana/read/route.ts",
   "src/app/connect/return/page.tsx",
   "test/contract.test.ts",
+  "test/consume-once.test.ts",
 ];
 
 test("registry exposes only the complete Direct LinkedIn reference", () => {
@@ -69,5 +72,34 @@ test("registry exposes only the complete Direct LinkedIn reference", () => {
     assert.equal(file.type, "registry:file");
     assert.equal(file.target, `~/${file.path}`);
     assert.doesNotThrow(() => readFileSync(resolve(root, file.path)));
+  }
+
+  const generatedIndex = JSON.parse(
+    readFileSync(resolve(root, "public/r/registry.json"), "utf8"),
+  ) as RegistryManifest;
+  assert.deepEqual(generatedIndex, manifest);
+
+  const generatedItem = JSON.parse(
+    readFileSync(resolve(root, "public/r/direct-vana-linkedin-next.json"), "utf8"),
+  ) as RegistryManifest["items"][number] & { $schema: string };
+  assert.equal(
+    generatedItem.$schema,
+    "https://ui.shadcn.com/schema/registry-item.json",
+  );
+
+  const {
+    files: generatedFiles,
+    $schema: _schema,
+    ...generatedMetadata
+  } = generatedItem;
+  const { files: sourceFiles, ...sourceMetadata } = item;
+  assert.deepEqual(generatedMetadata, sourceMetadata);
+  assert.deepEqual(
+    generatedFiles.map(({ content: _content, ...file }) => file),
+    sourceFiles,
+  );
+
+  for (const file of generatedFiles) {
+    assert.equal(file.content, readFileSync(resolve(root, file.path), "utf8"));
   }
 });

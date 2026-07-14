@@ -11,6 +11,9 @@ Passing the local proof does not mean the live path is configured.
 
 ## Build the app locally
 
+Use Node.js 22 or newer. This starter runs its backend routes in the Node.js
+runtime; it does not support the Edge runtime.
+
 ```bash
 git clone https://github.com/vana-com/vana-data-app-starter.git
 cd vana-data-app-starter
@@ -18,7 +21,12 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The initial profile is a fictional fixture, so this works without a private key, app identity, approval, or Personal Server read.
+Open the **Local** URL printed by Next.js. This is normally
+[http://localhost:3000](http://localhost:3000). If that port is occupied and
+you did not set `PORT` or pass `--port`, Next.js uses the next available port.
+Use the exact printed origin throughout setup. The initial profile is a
+fictional fixture, so this works without a private key, app identity, approval,
+or Personal Server read.
 
 ```bash
 pnpm test
@@ -31,15 +39,15 @@ Create a registered app identity instead of making a private key by hand:
 
 1. Open the Developers page for the Vana environment you are using.
 2. Select the network.
-3. Enter the exact App URL the browser will use. For this starter, use `http://localhost:3000`.
+3. Enter the exact App URL the browser will use. For this starter, use the local origin printed by `pnpm dev`.
 4. Create the app identity and approve the wallet signature.
 5. Copy the generated environment values immediately. The Developers page shows the private key once.
 
 | Request lane | Create the identity at | Open the starter at |
 | --- | --- | --- |
-| Production / Mainnet | [account.vana.org/developers](https://account.vana.org/developers), Mainnet | `http://localhost:3000` |
-| Production / Moksha | [account.vana.org/developers](https://account.vana.org/developers), Moksha | `http://localhost:3000?network=moksha` |
-| Dev / Moksha | [account-dev.vana.org/developers](https://account-dev.vana.org/developers), Moksha | `http://localhost:3000?vana_env=dev&network=moksha` |
+| Production / Mainnet | [account.vana.org/developers](https://account.vana.org/developers), Mainnet | `<local-origin>` |
+| Production / Moksha | [account.vana.org/developers](https://account.vana.org/developers), Moksha | `<local-origin>?network=moksha` |
+| Dev / Moksha | [account-dev.vana.org/developers](https://account-dev.vana.org/developers), Moksha | `<local-origin>?vana_env=dev&network=moksha` |
 
 Put the generated values in `.env.local`:
 
@@ -48,9 +56,29 @@ VANA_APP_PRIVATE_KEY=0x...
 VANA_APP_URL=http://localhost:3000
 ```
 
-Keep the private key server-only. `VANA_APP_URL` must match the registered App URL; the starter derives `/connect/return` from its origin.
+Replace the example origin with the exact local or deployed origin the browser
+uses, including a non-default port. Keep the private key server-only.
+`VANA_APP_URL` is server runtime configuration: the starter uses it for the app
+homepage, `/connect/return`, and signed request/session binding. It must match
+the registered App URL; never use a placeholder URL.
 
 There is no separate callback-registration step.
+
+### Deploy the server
+
+Deploy this as one long-lived Node.js 22+ process. Set
+`VANA_APP_PRIVATE_KEY` and `VANA_APP_URL` in the host's project environment for
+every deployed environment you use; `.env.local` is not uploaded. Set
+`VANA_APP_URL` to the fixed public origin that users open, then redeploy after
+adding or changing either value.
+
+The starter's consume-once guarantee is process-local. Within one uninterrupted
+Node.js process, overlapping reads share one attempt and later repeats reuse the
+accepted result. It retains at most 100 active request entries and refuses new
+distinct reads at capacity rather than evicting charge protection. A restart or
+cold start loses retained results. Serverless isolates, workers, multiple
+processes, or multiple regions therefore require a shared atomic
+consume-once/result store before they can safely serve paid reads.
 
 ### Choose the data scopes
 
@@ -69,7 +97,16 @@ Browse the public [Scope Coverage Registry](https://github.com/vana-com/data-con
 
 This starter requests only `linkedin.profile` in `src/lib/vana/constants.ts`. If you change or add scopes, update the capability check, fixture, mapper, and product UI together.
 
-The public registry is currently hand-maintained and can drift from private Unity capability data. [BUI-705](https://linear.app/vana-team/issue/BUI-705/make-the-public-source-scope-catalog-machine-readable-and) tracks making it machine-readable and authoritative. Until then, use it as the discovery surface and report mismatches instead of guessing.
+The local fictional fixture previews profile, Work, Education, and Skills, but
+the current live request reads only `linkedin.profile`. The local preview is not
+a public protocol fixture and does not prove that richer live shape.
+[BUI-727](https://linear.app/vana-team/issue/BUI-727/support-a-real-multi-scope-linkedin-profile-snapshot-in-the-data-app)
+owns the multi-scope transport, public fixtures, mapper, and product alignment.
+Until then, keep local product proof distinct from live protocol proof.
+
+The public Scope Coverage Registry is generated from the machine-readable
+catalog owned by `vana-com/data-connectors`. Use it and its schemas as the
+discovery surface instead of inventing starter-local public fixture rules.
 
 ## Run a live request
 
@@ -86,15 +123,14 @@ Keep the Vana tab open while it says data is being delivered. It may close after
 
 If **Connect LinkedIn** appears to do nothing, inspect `POST /api/vana/request` first. Missing environment values can fail request creation before the new tab receives its Vana URL.
 
-### Production-readiness blockers
+### Mainnet funding limitation
 
-- [unity-surfaces #715](https://github.com/vana-com/unity-surfaces/issues/715): Moksha completion can return `denied` without an authoritative failure reason.
-- [unity-surfaces #716](https://github.com/vana-com/unity-surfaces/issues/716): Mainnet requires the protocol's actual fee asset, but the deployed funding surface does not currently expose it correctly.
-- [BUI-705](https://linear.app/vana-team/issue/BUI-705/make-the-public-source-scope-catalog-machine-readable-and): the public source-scope catalog is not yet machine-readable or authoritative, so builders cannot reliably discover supported scopes, schemas, and collection paths without private Unity knowledge.
-
-Treat these as production-readiness gates, not optional documentation follow-ups. They do not invalidate the local fixture and mapper proof.
-
-The app operator funds Direct reads. Keep escrow balances, fee assets, funding instructions, and raw server errors out of end-user UI. Show neutral availability and recovery copy instead.
+The app operator funds Direct reads. A supported zero-crypto, self-service
+Mainnet path is not yet proven; [BUI-703](https://linear.app/vana-team/issue/BUI-703/unblock-mainnet-direct-reads-with-self-service-usdce-escrow-funding)
+owns that funding product and its live proof. Do not invent a manual acquisition
+or bridging workflow in this starter. Keep escrow balances, fee assets, funding
+instructions, and raw server errors out of end-user UI. Show neutral
+availability and recovery copy instead.
 
 ## Adapt the product
 
@@ -134,7 +170,7 @@ test/contract.test.ts
 The item installs `@opendatalabs/vana-sdk@3.13.4`, `server-only`, and `tsx`; it does not install Next.js, React, layouts, styles, product UI, environment values, or a `package.json` test script.
 
 ```bash
-npx tsx --test test/contract.test.ts
+npx tsx --test test/contract.test.ts test/consume-once.test.ts
 ```
 
 ## Transport boundary
@@ -152,10 +188,13 @@ Do not add a second payment state machine, retry wrapper, caller-selected return
 
 ## Maintaining the registry
 
-`registry.json` is the source manifest. Rebuild and commit `public/r/*.json` whenever it or a transport file changes:
+`registry.json` is the source manifest. Rebuild `public/r/*.json` whenever it or a transport file changes, then run the registry parity test:
 
 ```bash
 pnpm registry:build
+pnpm exec tsx --test test/registry.test.ts
 ```
 
-Before creating a release tag, validate from merged `main` and repeat the clean consumer install using the immutable ref.
+Publication and tagging are a fresh post-merge task. Before creating a release
+tag, validate from merged `main` and repeat the clean consumer install using the
+immutable ref.

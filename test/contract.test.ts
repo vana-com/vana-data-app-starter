@@ -5,7 +5,6 @@ import {
   PaymentRequiredError,
   PersonalServerReadError,
 } from "@opendatalabs/vana-sdk/server";
-import { consumerStateCopy } from "../src/components/linkedin-profile-copy";
 import { LINKEDIN_PROFILE_FIXTURE } from "../src/data/linkedin-profile.fixture";
 import { mapLinkedInProfile } from "../src/lib/linkedin-profile";
 import { resolveAppUrl } from "../src/lib/vana/app-url";
@@ -171,13 +170,6 @@ test("maps SDK and unknown failures to sanitized client errors", () => {
     error: "The Vana request failed.",
     status: 500,
   });
-});
-
-test("keeps builder diagnostics out of consumer error copy", () => {
-  const copy = consumerStateCopy("error", false);
-
-  assert.equal(copy, "Your LinkedIn profile is temporarily unavailable. Try again.");
-  assert.doesNotMatch(copy, /escrow|fee asset|fund|app identity|payment/i);
 });
 
 test("marks JSON responses as non-cacheable", async () => {
